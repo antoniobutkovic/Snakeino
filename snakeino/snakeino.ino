@@ -11,8 +11,9 @@ const int CLK = 10;
 //variables
 const int screenWidth = 8;
 const int screenHeight = 8;
-int snakeX, snakeY, foodX, foodY, score = 1;
+int snakeX, snakeY, foodX, foodY, score = 0, snakeSize = 0;
 char direction = 'u';
+int tailX[100], tailY[100];
 
 LedControl lc = LedControl(DIN, CS, CLK, 1);
 
@@ -48,14 +49,39 @@ void setupPins() {
 
 void loop() {
   changeSnakeDirection(getJoystickDirection());
-  drawSnake();
   manageEatenFood();
-  delay(1000);
+  manageSnakeOutOfBounds();
+  drawSnake();
+  drawSnakeTail();
+  delay(500);
+}
+
+void manageSnakeOutOfBounds() {
+  if (snakeX >= screenWidth) {
+    snakeX = 0;
+  } else if (snakeX < 0) {
+    snakeX = screenWidth - 1;
+  }
+  if (snakeY >= screenHeight) {
+    snakeY = 0;
+  } else if (snakeY < 0) {
+    snakeY = screenHeight - 1;
+  }
+}
+
+void drawSnakeTail() {
+  int prevSnakeX = snakeX - 1;
+  int prevSnakeY = snakeY;
+
+  for (int i = 0; i < snakeSize; i++) {
+    showLed(prevSnakeX, prevSnakeY);
+  }
 }
 
 void manageEatenFood() {
   if (snakeX == foodX && snakeY == foodY) {
     score++;
+    snakeSize++;
     setupFoodPosition();
   }
 }
