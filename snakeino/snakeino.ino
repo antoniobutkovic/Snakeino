@@ -11,8 +11,8 @@ const int CLK = 10;
 //variables
 const int screenWidth = 8;
 const int screenHeight = 8;
-int snakeX, snakeY, foodX, foodY, score = 0, snakeSize = 0;
-char direction = 'u';
+int snakeX, snakeY, foodX, foodY, score = 0, snakeSize = 1;
+char direction;
 int tailX[100], tailY[100];
 
 LedControl lc = LedControl(DIN, CS, CLK, 1);
@@ -27,8 +27,8 @@ void setup() {
 }
 
 void setupSnakePosition() {
-  snakeX = 3;
-  snakeY = 5;
+  snakeX = 4;
+  snakeY = 4;
 }
 
 void setupFoodPosition() {
@@ -38,7 +38,7 @@ void setupFoodPosition() {
 
 void setupLedBoard() {
   lc.shutdown(0, false);
-  lc.setIntensity(0, 8);
+  lc.setIntensity(0, 1);
   lc.clearDisplay(0);
 }
 
@@ -48,12 +48,13 @@ void setupPins() {
 }
 
 void loop() {
-  changeSnakeDirection(getJoystickDirection());
-  manageEatenFood();
+  setJoystickDirection();
+  changeSnakeDirection();
   manageSnakeOutOfBounds();
+  manageEatenFood();
+  manageSnakeTailCoordinates();
   drawSnake();
-  drawSnakeTail();
-  delay(500);
+  delay(300);
 }
 
 void manageSnakeOutOfBounds() {
@@ -69,12 +70,20 @@ void manageSnakeOutOfBounds() {
   }
 }
 
-void drawSnakeTail() {
-  int prevSnakeX = snakeX - 1;
-  int prevSnakeY = snakeY;
-
-  for (int i = 0; i < snakeSize; i++) {
-    showLed(prevSnakeX, prevSnakeY);
+void manageSnakeTailCoordinates() {
+  int previousX, previousY, prevX, prevY;
+  previousX = tailX[0];
+  previousY = tailY[0];
+  tailX[0] = snakeX;
+  tailY[0] = snakeY;
+  
+  for (int i = 1; i < snakeSize; i++){
+    prevX = tailX[i];
+    prevY = tailY[i];
+    tailX[i] = previousX;
+    tailY[i] = previousY;
+    previousX = prevX;
+    previousY = prevY;
   }
 }
 
@@ -86,20 +95,19 @@ void manageEatenFood() {
   }
 }
 
-char getJoystickDirection() {
-  if (analogRead(X_pin) == 1023) {
+void setJoystickDirection() {
+  if (analogRead(X_pin) > 1000) {
     direction = 'u';
-  } else if (analogRead(X_pin) == 0) {
+  } else if (analogRead(X_pin) < 100) {
     direction = 'd';
-  } else if (analogRead(Y_pin) == 1023) {
+  } else if (analogRead(Y_pin) > 1000) {
     direction = 'l';
-  } else if (analogRead(Y_pin) == 0) {
+  } else if (analogRead(Y_pin) < 100) {
     direction = 'r';
   }
-  return direction;
 }
 
-void changeSnakeDirection(char direction) {
+void changeSnakeDirection() {
   switch (direction) {
     case 'l':
       snakeX--;
@@ -132,7 +140,16 @@ void drawSnake() {
       } else if (i == foodY && j == foodX) {
         showLed(foodX, foodY);
       } else {
-        hideLed(j, i);
+        bool isShown = false;
+        for (int k = 0; k < snakeSize; k++){
+          if (tailX[k] == j && tailY[k] == i){
+            showLed(j,i);
+            isShown = true;
+          }
+        }
+        if (!isShown) {
+          hideLed(j, i);
+        }
       }
     }
   }
