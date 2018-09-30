@@ -14,16 +14,28 @@ const int screenHeight = 8;
 int snakeX, snakeY, foodX, foodY, score = 0, snakeSize = 1;
 char direction;
 int tailX[100], tailY[100];
+bool isGameOver = false;
+
+byte g[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000 };
+byte a[8] = {B00000000, B11111110, B00000100, B00001000, B00000100, B11111110, B00000000, B00000000 };
+byte m[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000 };
+byte e[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000 };
+byte o[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000 };
+byte v[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000 };
+byte r[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000 };
+byte exm[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000 };
 
 LedControl lc = LedControl(DIN, CS, CLK, 1);
 
 void setup() {
   Serial.begin(9600);
+  for (int i = 0; i < 100; i++) {
+    Serial.print(tailX[i]);
+  }
   setupPins();
   setupLedBoard();
   setupSnakePosition();
   setupFoodPosition();
-  drawSnake();
 }
 
 void setupSnakePosition() {
@@ -48,6 +60,15 @@ void setupPins() {
 }
 
 void loop() {
+  if (isGameOver) {
+    showGameOverMessage();
+  } else {
+    startGame();
+  }
+}
+
+void startGame() {
+  manageGameOver();
   setJoystickDirection();
   changeSnakeDirection();
   manageSnakeOutOfBounds();
@@ -55,6 +76,14 @@ void loop() {
   manageSnakeTailCoordinates();
   drawSnake();
   delay(300);
+}
+
+void manageGameOver() {
+  for (int i = 1; i < snakeSize; i++) {
+    if (tailX[i] == snakeX && tailY[i] == snakeY) {
+      isGameOver = true;
+    }
+  }
 }
 
 void manageSnakeOutOfBounds() {
@@ -76,8 +105,8 @@ void manageSnakeTailCoordinates() {
   previousY = tailY[0];
   tailX[0] = snakeX;
   tailY[0] = snakeY;
-  
-  for (int i = 1; i < snakeSize; i++){
+
+  for (int i = 1; i < snakeSize; i++) {
     prevX = tailX[i];
     prevY = tailY[i];
     tailX[i] = previousX;
@@ -124,6 +153,25 @@ void changeSnakeDirection() {
   }
 }
 
+void showGameOverMessage() {
+  for (int i = 0; i < screenHeight; i++) {
+    for (int j = 0; j < screenWidth; j++) {
+      showLed(j, i);
+      delay(50);
+    }
+  }
+  resetVariables();
+}
+
+void resetVariables() {
+  setupSnakePosition();
+  setupFoodPosition();
+  direction = ' ';
+  isGameOver = false;
+  score = 0;
+  snakeSize = 1;
+}
+
 void showLed(int row, int column) {
   lc.setLed(0, row, column, true);
 }
@@ -141,9 +189,9 @@ void drawSnake() {
         showLed(foodX, foodY);
       } else {
         bool isShown = false;
-        for (int k = 0; k < snakeSize; k++){
-          if (tailX[k] == j && tailY[k] == i){
-            showLed(j,i);
+        for (int k = 0; k < snakeSize; k++) {
+          if (tailX[k] == j && tailY[k] == i) {
+            showLed(j, i);
             isShown = true;
           }
         }
@@ -153,4 +201,5 @@ void drawSnake() {
       }
     }
   }
+
 }
