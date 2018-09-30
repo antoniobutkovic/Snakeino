@@ -12,3 +12,6 @@ Snakeino is imitation of Nokias snake game using arduino, dot matrix display and
 
 - [LedControl](https://github.com/wayoda/LedControl)
 
+### Video
+
+[![]()](https://www.youtube.com/watch?v=IM-qktZj_DI "Click to play")
