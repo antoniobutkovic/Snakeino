@@ -7,6 +7,7 @@ const int Y_pin = 1;
 const int DIN = 12;
 const int CS = 11;
 const int CLK = 10;
+const int BUZZER = 8;
 
 //variables
 const int screenWidth = 8;
@@ -16,22 +17,9 @@ char direction;
 int tailX[100], tailY[100];
 bool isGameOver = false;
 
-byte g[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000 };
-byte a[8] = {B00000000, B11111110, B00000100, B00001000, B00000100, B11111110, B00000000, B00000000 };
-byte m[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000 };
-byte e[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000 };
-byte o[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000 };
-byte v[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000 };
-byte r[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000 };
-byte exm[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000 };
-
 LedControl lc = LedControl(DIN, CS, CLK, 1);
 
 void setup() {
-  Serial.begin(9600);
-  for (int i = 0; i < 100; i++) {
-    Serial.print(tailX[i]);
-  }
   setupPins();
   setupLedBoard();
   setupSnakePosition();
@@ -61,10 +49,27 @@ void setupPins() {
 
 void loop() {
   if (isGameOver) {
-    showGameOverMessage();
+    playGameOverSong();
+    showGameOverScreen();
   } else {
     startGame();
   }
+}
+
+void playGameOverSong() {
+  tone(BUZZER, 1000, 1000);
+  delay(100);
+  tone(BUZZER, 2000, 1000);
+  delay(100);
+  tone(BUZZER, 3000, 1000);
+  delay(100);
+  tone(BUZZER, 4000, 1000);
+  delay(100);
+  tone(BUZZER, 5000, 2000);
+}
+
+void playFoodEatenSong() {
+  tone(BUZZER, 500, 100);
 }
 
 void startGame() {
@@ -118,6 +123,7 @@ void manageSnakeTailCoordinates() {
 
 void manageEatenFood() {
   if (snakeX == foodX && snakeY == foodY) {
+    playFoodEatenSong();
     score++;
     snakeSize++;
     setupFoodPosition();
@@ -153,7 +159,7 @@ void changeSnakeDirection() {
   }
 }
 
-void showGameOverMessage() {
+void showGameOverScreen() {
   for (int i = 0; i < screenHeight; i++) {
     for (int j = 0; j < screenWidth; j++) {
       showLed(j, i);
